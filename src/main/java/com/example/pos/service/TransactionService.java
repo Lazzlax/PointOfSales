@@ -1,17 +1,17 @@
 package com.example.pos.service;
 
-import com.example.pos.model.entity.Product;
 import com.example.pos.model.entity.Transaction;
 import com.example.pos.model.entity.TransactionDetail;
 import com.example.pos.model.request.TransactionRequest;
-import com.example.pos.model.response.ProductResponse;
 import com.example.pos.model.response.TransactionResponse;
 import com.example.pos.repository.TransactionDetailRepository;
 import com.example.pos.repository.TransactionRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -31,6 +31,7 @@ public class TransactionService {
         this.transactionResponse = transactionResponse;
     }
 
+
     public List<TransactionResponse> getAllTransaction(){
         List<TransactionResponse> transactionResponses = new ArrayList<>();
         List<Transaction> transactions = transactionRepository.findAll();
@@ -41,6 +42,7 @@ public class TransactionService {
                     .totalItem(item.getTotalItem())
                     .totalPrice(item.getTotalPrice())
                     .transactionDate(item.getTransactionDate())
+                    .detail(item.getDetail())
                     .build();
 
             transactionResponses.add(trx);
@@ -48,6 +50,39 @@ public class TransactionService {
 
         return transactionResponses;
     }
+
+    public List<TransactionResponse> getTransactionFiltered(int totalItem,
+                                                            BigDecimal totalPrice,
+                                                            Date startDate,
+                                                            Date endDate,
+                                                            int page,
+                                                            int size){
+        List<TransactionResponse> transactionResponses = new ArrayList<>();
+
+        Pageable paging = PageRequest.of(page, size);
+
+        Page<Transaction> transactions = transactionRepository
+                .getTransactionFiltered
+                        (totalItem,
+                        totalPrice,
+                        startDate,
+                        endDate,
+                        paging);
+
+        for (Transaction item: transactions) {
+            TransactionResponse trx = TransactionResponse.builder()
+                    .id(item.getId())
+                    .totalItem(item.getTotalItem())
+                    .totalPrice(item.getTotalPrice())
+                    .transactionDate(item.getTransactionDate())
+                    .detail(transactionDetailRepository.findByHeadTransId(item.getId()))
+                    .build();
+
+            transactionResponses.add(trx);
+        }
+        return transactionResponses;
+    }
+
 
     public TransactionResponse insertTransaction(TransactionRequest request){
         List<TransactionDetail> transactionDetails = new ArrayList<>();

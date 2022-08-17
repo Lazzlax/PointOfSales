@@ -1,0 +1,18 @@
+
+bool PalindromeCheck
+begin
+
+    word : string = 'kodok'
+    result : string = ''
+
+    loop(int i = 0; i <= word.length / 2; i++)
+    begin
+        if( word.charAt(i) != word.charAt((word.length -1) - i) ){
+            return (false)
+        }
+    end
+
+    return (true)
+
+end
+
